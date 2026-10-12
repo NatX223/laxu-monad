@@ -38,7 +38,7 @@ The Privy app is named **Laxu** (read from Privy's `apps.get` API on 2026-10-09)
 | Access-token verification | `verifyAccessToken` on every authenticated route; 401 on failure | [Backend/src/auth/privy.ts:49](../Backend/src/auth/privy.ts#L49) | Working |
 | Wallet resolved from Privy | The backend reads the user's wallet from Privy, not from the client | [Backend/src/auth/privy.ts:99](../Backend/src/auth/privy.ts#L99) | Working |
 | Signer on a user wallet, with a policy | Server acts on the user's embedded wallet only within the policy | [Backend/src/privy/policies.ts:54](../Backend/src/privy/policies.ts#L54), [App/src/lib/privySigner.ts:19](../App/src/lib/privySigner.ts#L19) | Proven by script and transaction |
-| Protection worker | Sends `repay()` through Privy's wallet RPC when health falls to the trigger | [Backend/src/services/protection.ts:127](../Backend/src/services/protection.ts#L127) | Not exercised end to end |
+| Protection worker | Sends `repay()` through Privy's wallet RPC when health falls to the trigger | [Backend/src/services/protection.ts:127](../Backend/src/services/protection.ts#L127) | Run end to end in the UI (reported; no tx hash recorded) |
 | Export wallet, link email or wallet | Account menu | [App/src/components/auth/AccountMenu.tsx:344](../App/src/components/auth/AccountMenu.tsx#L344) | Built; not exercised in a browser |
 | Privy server wallets | Spike only (section 5) | [Backend/scripts/privy/01-server-wallet.ts](../Backend/scripts/privy/01-server-wallet.ts) | Not shipped |
 
@@ -315,7 +315,7 @@ Each hash below was checked with `eth_getTransactionReceipt` and `eth_getTransac
 
 One more transaction is on chain but is **not** counted as proof. The embedded wallet's first transaction (nonce 0) is [`0x117b2a57165edc247d533963f14a442d5e87d3ad0c5551e3395b0627bda31a1a`](https://testnet.monadvision.com/tx/0x117b2a57165edc247d533963f14a442d5e87d3ad0c5551e3395b0627bda31a1a), dated 2026-10-08 20:46:25 UTC. It is `approve(0x…dEaD, 1000)` with the script's fixed 200,000 gas limit, and it was mined while the signer from run 1 was attached (20:44:54 to 20:50:23 UTC). That matches the script's allowed call. However, the run's log does not record it, and the findings call run 1 inconclusive. So who signed it is inferred, not shown.
 
-**No protection-triggered `repay()` has run on testnet.** No embedded-wallet user has had a loan while protection was on, and the database holds no protection rules or events. This is the most important item still open (section 9).
+**A protection-triggered `repay()` has been run end to end in the UI by the team (reported 2026-10-12); no tx hash was recorded.** It is not in the table above for that reason. The next run should record the `repay` tx hash and the `REPAID` event here.
 
 ### Policy refusal log
 
@@ -402,9 +402,9 @@ Steps marked **(your credentials)** need your own Privy app.
 | Server acts on a user's wallet through a signer, within the policy | Proven | `03-user-signer.ts` run 2; `0x370e8a29…`; three `policy_violation` refusals |
 | Removing the signer stops the server | Proven | HTTP 401 after `removeSigners` |
 | Repay policy shape | Proven by test | `policies.test.ts` (5 tests); created in Privy by `qa-protection.ts` |
-| Activation checks (signer and allowance) | Proven for the refusal path | `qa-protection.ts`: `SIGNER_MISSING`, rule stays disabled. The success path has not run |
+| Activation checks (signer and allowance) | Proven for the refusal path; success path run in the UI | `qa-protection.ts`: `SIGNER_MISSING`, rule stays disabled. The success path ran in the UI protection run (reported; no tx hash recorded) |
 | Browser QA of the card (Spec 05b 7.2) | Not exercised | Items 1 and 2 partial (logic and backend answers only); items 3 to 12 not run. See [privy-findings.md](privy-findings.md), "Frontend QA" |
-| Full trigger-and-repay cycle on testnet | **Not exercised** | No protected loan has existed; no `REPAID` event exists |
+| Full trigger-and-repay cycle on testnet | Run in the UI | Reported by the team, 2026-10-12; no tx hash recorded yet |
 | `demo-rejection.ts --full` against a live repay policy | Not exercised | Needs an enabled rule |
 | Embedded wallets only | By design | Signers attach to Privy wallets. External-wallet users see "Loan protection needs a Laxu wallet created with email sign-in." The backend answer `NOT_EMBEDDED_WALLET` is unexercised, because no external-wallet user exists |
 | One active rule per wallet | By design | A signer carries at most one policy, so the backend refuses a second active rule (`ANOTHER_RULE_ACTIVE`) |
