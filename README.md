@@ -509,7 +509,7 @@ Everything in the app's env ends up in the browser bundle; never put a secret th
 From [litepaper §11](docs/LITEPAPER.md#11-roadmap):
 
 1. Funding and fills verified on-chain or by a second reporter; multiple reporters.
-2. Per-user delegated Perpl accounts (less custody).
+2. User-owned Perpl accounts through Perpl's builder-bound API keys, for plain trading and following; positions that back a loan stay in Laxu slots so liquidation stays enforceable ([litepaper §11](docs/LITEPAPER.md#11-roadmap)).
 3. Loan protection for external wallets (smart-account or session-key route).
 4. Secondary market and social layer.
 5. Provision more slots as usage grows.
