@@ -184,7 +184,7 @@ The full commit history is in this repository.
 3. **Open a trade.** **Trade** → **ETH** (or BTC), long, **3×**, **50 AUSD** → open, and approve the payment. The ticket's minimum is the larger of Perpl's minimum deposit (10 AUSD on testnet, read from Perpl's `min_deposit_amount`) and one lot at your leverage plus 5%. At 3× on ETH or BTC one lot is under 1 AUSD, so the 10 AUSD deposit minimum applies; the backend refuses a smaller open before you pay, from the same field.
 4. **Land on the position page.** The token is in your wallet and the pool shows as ready.
 5. **Deposit and borrow** about half the maximum. Health appears and your AUSD balance goes up.
-6. **Protect this loan** (email sign-in only). Set a trigger above your current health (for example 1.6 against 1.3) so it acts at once, a target at least 0.10 higher, and a maximum spend. Add the signer: no Privy popup appeared on this setup, so the card's text and button are the consent step. Approve the allowance. Expected: the card shows "Protected", then a repay with its tx link. Needs `NEXT_PUBLIC_ENABLE_PROTECTION=true` and `ENABLE_PROTECTION=true`. ⚠ Not yet run end to end in a browser.
+6. **Protect this loan** (email sign-in only). Set a trigger above your current health (for example 1.6 against 1.3) so it acts at once, a target at least 0.10 higher, and a maximum spend. Add the signer: no Privy popup appeared on this setup, so the card's text and button are the consent step. Approve the allowance. Expected: the card shows "Protected", then a repay with its tx link. Needs `NEXT_PUBLIC_ENABLE_PROTECTION=true` and `ENABLE_PROTECTION=true`. Run end to end in the UI (reported; no tx hash recorded).
 7. **Repay** the rest, then **withdraw your collateral**.
 8. **Fail on purpose.** Borrow above the maximum: the app shows the contract's reason and sends nothing. With funding over 2 hours or the mark over 5 minutes old, it shows "Prices updating, try again shortly." instead.
 
@@ -242,7 +242,7 @@ Steps 1, 2, 5 and 9 of that run passed only after a fix or a corrected check; th
 - On-chain mark; funding pushes on threshold or heartbeat (step 2).
 - Buy-in, redeem, per-holder stop-loss, close → settle → claim (steps 5–7, 9).
 - Borrowing with the backend down (step 8).
-- Loan protection, server side: a 22-of-22 QA run against the real database, chain and Privy (validation, refusals, activation checks, worker no-debt and wallet-mismatch paths; no transaction sent). Signer and policy enforcement measured on testnet.
+- Loan protection, server side: a 22-of-22 QA run against the real database, chain and Privy (validation, refusals, activation checks, worker no-debt and wallet-mismatch paths; no transaction sent). Signer and policy enforcement measured on testnet. The full trigger-and-repay cycle has been run end to end in the UI by the team (reported 2026-10-12); no tx hash was recorded.
 
 ### Doesn't work yet / limited
 

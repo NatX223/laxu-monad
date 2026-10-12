@@ -161,7 +161,7 @@ The close factor is 50%, or 100% below health factor 0.95 or under $50 of collat
 
 **User level**
 - Per-holder stop-loss and take-profit fire on Perpl's mark. *Proven:* a real stop-loss fired at mark $2706.53 (e2e step 7).
-- **Protect this loan:** a Privy signer, limited by policy to `repay()` on one pool up to a per-call cap. See [`docs/PRIVY.md`](PRIVY.md). Server-side QA passed; a full trigger-and-repay cycle is **not exercised**.
+- **Protect this loan:** a Privy signer, limited by policy to `repay()` on one pool up to a per-call cap. See [`docs/PRIVY.md`](PRIVY.md). Server-side QA passed; a full trigger-and-repay cycle has been run in the UI (reported; no tx hash recorded).
 
 **Operational**
 - Perpl API keys cannot withdraw. Withdrawals need the slot wallet's EVM key, sent on-chain.
@@ -341,6 +341,6 @@ Foundry form (not run here, since Foundry is not installed on this machine): `ca
 | Slots | 5 | Accounts 824, 841, 1063, 1064 and 1065; 5 trades open at once |
 | Funding | Operator-reported | Bounded by `FUNDING_MAX_AGE` (2 h); the mark is not operator-reported |
 | Strategy bot | None | A funding-rate demo strategy is on the roadmap |
-| Protect this loan | Server QA passed | The full trigger-and-repay cycle is not exercised ([`PRIVY.md`](PRIVY.md)) |
+| Protect this loan | Server QA passed; run in the UI | The full trigger-and-repay cycle was run in the UI; no tx hash recorded ([`PRIVY.md`](PRIVY.md)) |
 | Testnet resets | Risk | A Perpl testnet reset would affect every open position |
 | Audit | None | Contracts are unaudited; bad debt is not absorbed |

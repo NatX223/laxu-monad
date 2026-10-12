@@ -10,7 +10,7 @@ Laxu uses Privy for sign-in and embedded wallets, and goes further for one featu
 | Embedded wallets (`createOnLogin: 'users-without-wallets'`) | same | Built, in use |
 | Wallet signing in the browser (viem over the Privy provider) | `App/src/lib/walletClient.ts` | Built, in use |
 | Server-verified identity: the backend verifies the access token and reads the user's wallet from Privy; an address in a request body is never trusted | `Backend/src/auth/privy.ts` | Built, in use |
-| **Signers + policies (loan protection)** | `Backend/src/privy/`, `Backend/src/services/protection*.ts`, `App/src/components/position/ProtectionCard.tsx` | Built. Signer and policy behaviour measured on Monad testnet in the spike; the full loan-protection run is **not yet done** (see Evidence) |
+| **Signers + policies (loan protection)** | `Backend/src/privy/`, `Backend/src/services/protection*.ts`, `App/src/components/position/ProtectionCard.tsx` | Built. Signer and policy behaviour measured on Monad testnet in the spike; the full loan-protection run has been run end to end in the UI by the team (reported 2026-10-12); no tx hash was recorded (see Evidence) |
 | Export wallet, link email / wallet (account menu) | `App/src/components/auth/AccountMenu.tsx` | Built; not yet exercised in a browser |
 | Server wallet (spike script 01) | `Backend/scripts/privy/01-server-wallet.ts` | **A proof, not a shipped feature.** It showed Privy can create a wallet and sign and broadcast on Monad testnet. Part 3 (running the faucet and liquidator through Privy server wallets) was cancelled: those wallets, like the slot, float and operator wallets, still use their own keys and are untouched |
 
@@ -106,7 +106,7 @@ Every `PROTECTION_INTERVAL_MS` (5 s) it reads `healthFactor` and `currentDebt` f
 
 **Not yet run (do not read this page as claiming them):**
 - The browser QA list of Spec 05b section 7.2, beyond the parts above. See `docs/privy-findings.md`, "Frontend QA", for each item and its status.
-- An end-to-end loan-protection run on testnet: a real loan near the cap, protection firing, a `REPAID` event with a tx hash, health moving to the target.
+- A recorded end-to-end loan-protection run: the cycle has been run end to end in the UI by the team (reported 2026-10-12); no tx hash was recorded. The next run should record the `REPAID` event, its tx hash and the health before and after.
 - The rejection script against a live protection rule: `npx ts-node --transpile-only scripts/privy/demo-rejection.ts --full` (saves `Backend/.e2e/privy-rejections.json`).
 - Screenshots of the card.
 
