@@ -352,7 +352,7 @@ All cut to ship **open → borrow** end to end.
 - **Grow through** shareable trade pages and the 2% creator fee.
 - **Cold start:** Laxu seeds the vault. **Launch safely:** low debt ceilings, raised over time.
 - **Channels:** the Monad builder community, the hackathon, X.
-- **Perpl:** Laxu integrates through Perpl's public API and exchange contract. Through the hackathon mentors we asked Perpl about whitelisting our origin and issuing a builder code; neither question has been answered yet. There is no partnership.
+- **Perpl:** Laxu integrates through Perpl's public API and exchange contract. Through the hackathon mentors we asked Perpl about whitelisting our origin and issuing a builder code. Perpl pointed us to its builder program, which covers both; we have submitted the registration and have no reply yet. There is no partnership.
 
 ---
 

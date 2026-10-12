@@ -333,8 +333,8 @@ Foundry form (not run here, since Foundry is not installed on this machine): `ca
 
 | Item | Status | Detail |
 |---|---|---|
-| Origin whitelisting | Asked, reply pending | Needed for key enrolment and direct browser market data; asked through the hackathon mentors |
-| Builder code | Asked, reply pending | Built behind `PERPL_BUILDER_ENABLED=false`; builder fee 0 |
+| Origin whitelisting | Builder registration submitted, reply pending | Needed for key enrolment and direct browser market data; Perpl handles it through the builder registration form |
+| Builder code | Builder registration submitted, reply pending | Built behind `PERPL_BUILDER_ENABLED=false`; builder fee 0 |
 | Delegated accounts | Not built | Per-user accounts via `target_profile`; the owner-side grant is not documented |
 | `1008 ping timeout` | Open | 1 close per socket in 30 min idle, 6–9 in a 53-min soak; evidence points outside Laxu; orders are safe through the lot rule |
 | Keep-alive run on a hosted backend | Not yet run | Local runs only |
