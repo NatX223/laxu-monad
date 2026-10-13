@@ -309,7 +309,11 @@ export async function verifySlotCredentials(): Promise<SlotProblem[]> {
 }
 
 export interface PoolStats {
+  /// Free slots reserveSlot would actually hand out.
   free: number;
+  /// Status `free`, but reserveSlot skips them: no Perpl account, forwarding
+  /// off, or a problem found by {verifySlotCredentials} (see /health/ready).
+  blocked: number;
   reserved: number;
   allocated: number;
   settling: number;
@@ -324,10 +328,22 @@ export async function poolStats(): Promise<PoolStats> {
     where: { operatorWallet: { status: "active" } },
     _count: { _all: true },
   });
-  const stats: PoolStats = { free: 0, reserved: 0, allocated: 0, settling: 0, total: 0 };
+  const stats: PoolStats = { free: 0, blocked: 0, reserved: 0, allocated: 0, settling: 0, total: 0 };
   for (const row of grouped) {
     if (row.status in stats && row.status !== "total") stats[row.status as keyof PoolStats] = row._count._all;
     stats.total += row._count._all;
   }
+  // Same filter as reserveSlot, so `free > 0` means an open can get a slot.
+  const usable = await db.subaccountSlot.count({
+    where: {
+      status: "free",
+      operatorWallet: { status: "active" },
+      perplAccountId: { not: null },
+      forwardingEnabled: true,
+      id: { notIn: [...slotProblems.keys()] },
+    },
+  });
+  stats.blocked = stats.free - usable;
+  stats.free = usable;
   return stats;
 }

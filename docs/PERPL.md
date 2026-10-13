@@ -283,13 +283,15 @@ How to read it: the 69 orders include our probe and experiment orders, not only 
 
 ## 8. Screenshots
 
-⚠ TODO screenshot: ![Trade ticket with the real Perpl book and tape](img/perpl/01-trade-ticket.png)
+![Trade ticket with the real Perpl book and tape](img/perpl/01-trade-ticket.png)
 
-⚠ TODO screenshot: ![Open flow progress: payment, deposit, order, mint](img/perpl/02-open-progress.png)
+![Open flow progress: payment, deposit, order, mint](img/perpl/02-open-progress.png)
 
-⚠ TODO screenshot: ![Position page: NAV, size, entry, mark, funding](img/perpl/03-position-page.png)
+![Position page: NAV, size, entry, mark, funding; Laxu's token verified against Perpl account 841](img/perpl/03-position-page.png)
 
-⚠ TODO screenshot: ![Explorer view of the forwarded order transaction](img/perpl/04-perpl-explorer-order.png)
+![Explorer view of the forwarded order transaction](img/perpl/04-perpl-explorer-order.png)
+
+Screenshots 02–04 are one trade: a NEAR 3× long, filled on Perpl account 841 on 2026-10-13 at 11:16:59 UTC, forwarded to the Perpl Exchange in tx [`0xebf72eca…`](https://testnet.monadscan.com/tx/0xebf72ecaa722144ebf6053f105992a1ce7ba013842e4c976ee515d63065dc65b).
 
 ## 9. Reproduce it
 
