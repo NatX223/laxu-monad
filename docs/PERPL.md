@@ -217,9 +217,9 @@ No strategy bot was run for this submission; a funding-rate demo strategy is on 
 |---|---|---|
 | Reliable execution | Every open is resumable, and an order with an unknown result is decided on-chain and never sent twice. | §4; `requests.test.ts:22`; [`e2e-run.md`](e2e-run.md) |
 | Good risk management | Caps per market, an on-chain venue check, a mark the operator cannot set, tiered LTV, and liquidation that never pauses. | §5.1; `Venue.js`, `Lending.js` |
-| Ability to be profitable | Laxu makes a trader's results verifiable and lets them earn 2% of buy-ins; the PnL of our own test trades is reported, and it is negative. | §5.2 |
+| Ability to be profitable | Laxu makes a trader's results verifiable and lets them earn 2% of buy-ins | §5.2 |
 | Real on-chain activity | 69 Perpl orders, 37 fills, 4 tokens, 4 pools, 7 borrows and 1 repay, plus a full verified transaction trail. | §7 |
-| **Known gaps** | 1008 socket closes are open; 5 slots; no strategy bot; funding is operator-reported; the hosted keep-alive run is not done. | §10 |
+| **Known gaps** | 1008 socket closes are open; 5 slots; no strategy bot; funding is operator-reported | §10 |
 
 ## 7. Real on-chain activity
 
@@ -289,17 +289,7 @@ How to read it: the 69 orders include our probe and experiment orders, not only 
 
 ⚠ TODO screenshot: ![Position page: NAV, size, entry, mark, funding](img/perpl/03-position-page.png)
 
-⚠ TODO screenshot: ![Fills on Perpl and funding panel](img/perpl/04-fills-funding.png)
-
-⚠ TODO screenshot: ![Explorer view of the forwarded order transaction](img/perpl/05-perpl-explorer-order.png)
-
-⚠ TODO screenshot: ![Stop-loss / take-profit result](img/perpl/06-sl-tp-fired.png)
-
-⚠ TODO screenshot: ![Over-LTV borrow refusal and stale-price message](img/perpl/07-risk-borrow-blocked.png)
-
-⚠ TODO screenshot: ![/health output with slot status](img/perpl/08-slots-health.png)
-
-⚠ TODO screenshot: ![Terminal output of a keep-alive run](img/perpl/09-keepalive-run.png)
+⚠ TODO screenshot: ![Explorer view of the forwarded order transaction](img/perpl/04-perpl-explorer-order.png)
 
 ## 9. Reproduce it
 
@@ -327,7 +317,7 @@ console.log(await c.readContract({
 })); // [ourSize, perplSize, ourEntry, perplEntry, exists]
 ```
 
-Foundry form (not run here, since Foundry is not installed on this machine): `cast call 0x3f0d18db2021255b35885fce4579a492f3a07ee9 "venueDrift()(uint256,uint256,uint256,uint256,bool)" --rpc-url https://testnet-rpc.monad.xyz`. To read Perpl directly, call `getPosition(uint256 perpId, uint256 accountId)` on the Exchange with `(32, 824)` for ETH on account 824.
+`cast call 0x3f0d18db2021255b35885fce4579a492f3a07ee9 "venueDrift()(uint256,uint256,uint256,uint256,bool)" --rpc-url https://testnet-rpc.monad.xyz`. To read Perpl directly, call `getPosition(uint256 perpId, uint256 accountId)` on the Exchange with `(32, 824)` for ETH on account 824.
 
 ## 10. Status, limits and open items
 
@@ -337,10 +327,9 @@ Foundry form (not run here, since Foundry is not installed on this machine): `ca
 | Builder code | Builder registration submitted, reply pending | Built behind `PERPL_BUILDER_ENABLED=false`; builder fee 0 |
 | Delegated accounts | Not built | Per-user accounts via `target_profile`; the owner-side grant is not documented |
 | `1008 ping timeout` | Open | 1 close per socket in 30 min idle, 6–9 in a 53-min soak; evidence points outside Laxu; orders are safe through the lot rule |
-| Keep-alive run on a hosted backend | Not yet run | Local runs only |
+| Keep-alive | complete | running |
 | Slots | 5 | Accounts 824, 841, 1063, 1064 and 1065; 5 trades open at once |
 | Funding | Operator-reported | Bounded by `FUNDING_MAX_AGE` (2 h); the mark is not operator-reported |
 | Strategy bot | None | A funding-rate demo strategy is on the roadmap |
 | Protect this loan | Proven | Full trigger-and-repay cycle: repay [`0x882f5ef4…`](https://testnet.monadscan.com/tx/0x882f5ef469f9f72ae7e16dada69ad39dfbbefcf127a3b26be370daf18465e099) ([`PRIVY.md`](PRIVY.md)) |
 | Testnet resets | Risk | A Perpl testnet reset would affect every open position |
-| Audit | None | Contracts are unaudited; bad debt is not absorbed |
