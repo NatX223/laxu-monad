@@ -352,7 +352,7 @@ All cut to ship **open → borrow** end to end.
 - **Grow through** shareable trade pages and the 2% creator fee.
 - **Cold start:** Laxu seeds the vault. **Launch safely:** low debt ceilings, raised over time.
 - **Channels:** the Monad builder community, the hackathon, X.
-- **Perpl:** Laxu integrates through Perpl's public API and exchange contract. Through the hackathon mentors we asked Perpl about whitelisting our origin and issuing a builder code; neither question has been answered yet. There is no partnership.
+- **Perpl:** Laxu integrates through Perpl's public API and exchange contract. Through the hackathon mentors we asked Perpl about whitelisting our origin and issuing a builder code. Perpl pointed us to its builder program, which covers both; we have submitted the registration and have no reply yet. There is no partnership.
 
 ---
 
@@ -371,7 +371,7 @@ All cut to ship **open → borrow** end to end.
 ## 11. Roadmap
 
 1. Funding and fills verified on-chain or by a second reporter; multiple reporters.
-2. Per-user delegated Perpl accounts (less custody).
+2. **User-owned Perpl accounts (less custody).** Perpl's answer is builder-bound API keys: Laxu registers as a builder, the user signs one EIP-712 enrolment with their own wallet, and Laxu trades their account through a key it can only use within Perpl's scopes and our fee ceiling. The code for this exists for slot keys (`venue/perpl/enrollment.ts`, `builder.ts`) and waits on Perpl issuing a builder id and whitelisting our origin. It fits plain trading and following, not borrowing: a user can close the position, withdraw or revoke the key at any time, so a loan backed by it could not be liquidated reliably. Positions that back a loan therefore stay in Laxu slots, where liquidation is enforced.
 3. Loan protection for external wallets (smart-account or session-key route).
 4. Secondary market and social layer.
 5. Provision more slots as usage grows.

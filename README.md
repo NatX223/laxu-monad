@@ -248,7 +248,7 @@ Steps 1, 2, 5 and 9 of that run passed only after a fix or a corrected check; th
 
 - **Full protection cycle not run:** no testnet run yet of a real loan crossing its trigger and being repaid by the worker. **Browser QA of the protection card has not been run.**
 - **WebSocket `1008 ping timeout`:** Perpl's testnet closes trading sockets (6–9 per socket in a 53-minute soak; 1 per socket in a later 30-minute idle run, at the 2-per-hour budget, not under it). Laxu answers every ping at once, and two separate sockets closed within 5 ms of each other, which points at the server. Interrupted orders are decided on-chain; no money was affected. Not resolved.
-- **Pending with Perpl:** origin whitelisting (needed for key enrollment and direct browser market data) and a builder code, asked through the hackathon mentors, no answer yet. Builder-code support is built behind a flag that is off.
+- **Pending with Perpl:** origin whitelisting (needed for key enrollment and direct browser market data) and a builder code, Perpl pointed us to its builder program; the registration form (builder id and CORS origin) is submitted, no reply yet. Builder-code support is built behind a flag that is off.
 - **Custody:** Laxu's slot wallets hold the Perpl accounts. Per-user delegated accounts are planned, pending exchange support.
 - **Funding, fills and settlement amounts are operator-reported.** The mark is not.
 - **Capacity:** one open trade per slot. The database checked on 10 Oct 2026 has 5 slots (Perpl accounts 824, 841, 1063, 1064 and 1065), so 5 trades can be open at once. ⚠ TODO: final slot count on the deployed backend.
@@ -509,7 +509,7 @@ Everything in the app's env ends up in the browser bundle; never put a secret th
 From [litepaper §11](docs/LITEPAPER.md#11-roadmap):
 
 1. Funding and fills verified on-chain or by a second reporter; multiple reporters.
-2. Per-user delegated Perpl accounts (less custody).
+2. User-owned Perpl accounts through Perpl's builder-bound API keys, for plain trading and following; positions that back a loan stay in Laxu slots so liquidation stays enforceable ([litepaper §11](docs/LITEPAPER.md#11-roadmap)).
 3. Loan protection for external wallets (smart-account or session-key route).
 4. Secondary market and social layer.
 5. Provision more slots as usage grows.
