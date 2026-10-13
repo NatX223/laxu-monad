@@ -7,7 +7,10 @@ Borrow against your open perp trade while it keeps running.
 | **Network** | Monad testnet (chain 10143) |
 | **Trading** | Perpl |
 | **Wallets** | Privy wallets and loan protection |
-| **Demo video (3 min)** | ⚠ TODO (video URL) |
+| **Pitch video** | [Loom](https://www.loom.com/share/c4b18b7c3b0447a2b5634c60b0fd3d9c) |
+| **Technical demo** | [Loom](https://www.loom.com/share/3be88ad44d51473482b6049f4497766a) |
+| **Perpl demo** | [Loom](https://www.loom.com/share/0e5a6a91ba22451aa14643fc0721263e) |
+| **Privy demo** | [Loom](https://www.loom.com/share/1bbde29958214b32a3947b125247c8dd) |
 | **Live app** | <https://laxu-monad.vercel.app> |
 | **Litepaper** | [PDF](docs/LITEPAPER.pdf) · [Markdown](docs/LITEPAPER.md) |
 
