@@ -7,7 +7,10 @@ Borrow against your open perp trade while it keeps running.
 | **Network** | Monad testnet (chain 10143) |
 | **Trading** | Perpl |
 | **Wallets** | Privy wallets and loan protection |
-| **Demo video (3 min)** | ⚠ TODO (video URL) |
+| **Pitch video** | [Loom](https://www.loom.com/share/c4b18b7c3b0447a2b5634c60b0fd3d9c) |
+| **Technical demo** | [Loom](https://www.loom.com/share/3be88ad44d51473482b6049f4497766a) |
+| **Perpl demo** | [Loom](https://www.loom.com/share/0e5a6a91ba22451aa14643fc0721263e) |
+| **Privy demo** | [Loom](https://www.loom.com/share/1bbde29958214b32a3947b125247c8dd) |
 | **Live app** | <https://laxu-monad.vercel.app> |
 | **Litepaper** | [PDF](docs/LITEPAPER.pdf) · [Markdown](docs/LITEPAPER.md) |
 
@@ -142,7 +145,7 @@ Full explanation, policy, evidence and screenshots: [docs/PRIVY.md](docs/PRIVY.m
 
 - **What Laxu does on Perpl:** opens a real Perpl position per trade (deposit, signed IOC order over the trading WebSocket, fill forwarded on-chain), then mints a token that prices itself from Perpl's on-chain mark.
 - **The angle, idea 04 (social trading):** every position is a verifiable token. Anyone can follow a trader by buying a slice of that exact position, the creator earns 2% of each buy-in, and holders can borrow against it. Options and structured products are not built.
-- **The four criteria:** *execution:* resumable opens, and an order with an unknown result is decided on-chain, never sent twice. *Risk:* per-market leverage caps, an on-chain venue check, tiered LTV, liquidation that never pauses. *Profitability:* infrastructure, not a strategy; our test trades are reported with real fees and funding (net −$0.62). *On-chain:* 69 Perpl orders, 37 fills, 4 tokens, 4 pools, 7 borrows, 1 repay, counted by `npm run perpl:report`.
+- **The four criteria:** *execution:* resumable opens, and an order with an unknown result is decided on-chain, never sent twice. *Risk:* per-market leverage caps, an on-chain venue check, tiered LTV, liquidation that never pauses. *Profitability:* infrastructure, not a strategy; our test trades are reported with real fees and funding (net −$23.42 over 6 settled test positions, mostly one 10x BTC long). *On-chain:* 76 Perpl orders, 43 fills, 7 position tokens and 7 lending pools, counted by `npm run perpl:report` on 13 Oct 2026.
 - **Related:** loan protection with Privy is in [docs/PRIVY.md](docs/PRIVY.md).
 
 [Full explanation, evidence and screenshots](docs/PERPL.md) ([PDF](docs/PERPL.pdf))
@@ -251,7 +254,7 @@ Steps 1, 2, 5 and 9 of that run passed only after a fix or a corrected check; th
 - **Pending with Perpl:** origin whitelisting (needed for key enrollment and direct browser market data) and a builder code, Perpl pointed us to its builder program; the registration form (builder id and CORS origin) is submitted, no reply yet. Builder-code support is built behind a flag that is off.
 - **Custody:** Laxu's slot wallets hold the Perpl accounts. Per-user delegated accounts are planned, pending exchange support.
 - **Funding, fills and settlement amounts are operator-reported.** The mark is not.
-- **Capacity:** one open trade per slot. The database checked on 10 Oct 2026 has 5 slots (Perpl accounts 824, 841, 1063, 1064 and 1065), so 5 trades can be open at once. ⚠ TODO: final slot count on the deployed backend.
+- **Capacity:** one open trade per slot. The database checked on 10 Oct 2026 has 5 slots (Perpl accounts 824, 841, 1063, 1064 and 1065), so 5 trades can be open at once.
 - **Unaudited contracts.** Bad debt is not absorbed and there is no insurance fund.
 - **Perpl testnet may reset**, which would affect every open position.
 - **Not built:** a vault screen for lenders (the ERC-4626 vault works directly) and a secondary market. The liquidation bot is built and off by default; `liquidate()` is open to anyone.

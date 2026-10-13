@@ -27,8 +27,8 @@ Laxu runs on Monad testnet (chain ID 10143) and trades on Perpl, the perpetual f
     - *Reliable execution:* a resumable open flow, and an order whose result is unknown is decided on-chain, never sent twice.
     - *Risk management:* leverage caps per market, entry checked against Perpl on-chain, tiered LTV, and liquidation that never pauses.
     - *Profitability:* Laxu is infrastructure, not a strategy. Our own test trades are reported with real fees and funding.
-    - *On-chain activity:* 69 orders, 37 fills, 4 position tokens, 4 lending pools, 7 borrows and 1 repay, all counted by a script.
-- **The honest gap.** No strategy bot was run, and our test trades lost $0.62 in total: $0.42 from price moves and $0.19 in fees ([§5.2](#52-profitability-what-we-can-honestly-say)). Laxu is **not** a trading bot and does not pick trades.
+    - *On-chain activity:* 76 Perpl orders, 43 fills, 7 position tokens and 7 lending pools (13 Oct), plus on-chain borrows, repays and an automated protection repay, all counted by a script.
+- **The honest gap.** No strategy bot was run, and our 6 settled test trades lost $23.42 in total: $18.46 from price moves, $3.61 in fees and $1.35 in funding. Most of it ($22.40) is one 10x BTC long ([§5.2](#52-profitability-what-we-can-honestly-say)). Laxu is **not** a trading bot and does not pick trades.
 - **Evidence index:** transactions in [§7](#7-real-on-chain-activity); the full run log is [`docs/e2e-run.md`](e2e-run.md); exchange behaviour we measured is in [`docs/perpl-findings.md`](perpl-findings.md).
 
 ## 2. The angle: verifiable positions for social trading
@@ -113,7 +113,7 @@ Laxu runs on Monad testnet (chain ID 10143) and trades on Perpl, the perpetual f
 - A gap in the `mt:100` heartbeat sequence forces a reconnect for fresh snapshots ([`:577-585`](../Backend/src/venue/perpl/tradingWs.ts#L577-L585)).
 - The app ping (`mt:1`, 30 s ± 2 s) starts only after sign-in succeeds ([`keepAlive.ts:35`](../Backend/src/venue/perpl/keepAlive.ts#L35)). The `ws` library answers protocol pings.
 - **The `1008 ping timeout` closes are open, not resolved.** In a 53-minute soak, sockets closed 6–9 times each. In a 30-minute idle run (8 Oct), each socket closed once, which is 2 per hour: at the budget, not under it. Laxu answered all 337 server pings within the same millisecond. Two separate sockets closed within 5 ms of each other, which points at the server or the network path. An order cut off by a close is decided by the lot rule, and no money was affected.
-- **Keep-alive run on the hosted backend: not yet run.** Every run so far was from one PC in Nigeria, with about 0.4 s round trip to Perpl. The order-load run is not run either.
+- **Keep-alive: complete and running** on the hosted backend. The order-load run has not been run.
 
 **Paced RPC.** Monad's public RPC limits requests to 25 per second. Every request goes through one throttle at 12 per second (`RPC_MAX_RPS`), and rate-limit answers are retried with backoff, up to 6 times ([`clients.ts:35-66`](../Backend/src/chain/clients.ts#L35-L66)). Log queries are split into 100-block windows. Writes add 30% to the gas estimate (`GAS_BUFFER_BPS`).
 
@@ -186,15 +186,18 @@ The close factor is 50%, or 100% below health factor 0.95 or under $50 of collat
 
 Laxu is execution and position infrastructure, not a strategy that picks trades. The edge belongs to the trader who creates the position. Laxu makes their execution safe and their results verifiable. It also gives them a way to earn (2% of each buy-in) and to unlock capital without closing (borrowing).
 
-**Our own test trades.** These are every Laxu position recorded in the database, read from Perpl's fills and position history by `npm run perpl:report` on 9 Oct 2026. They are test-size trades that show the accounting, **not a track record**.
+**Our own test trades.** These are every Laxu position recorded in the database, read from Perpl's fills and position history by `npm run perpl:report` on 13 Oct 2026. They are test-size trades that show the accounting, **not a track record**.
 
 | Position | Market | Side | Lev | Size (opened) | Avg entry | Avg exit | Gross PnL | Fees | Funding | Net (AUSD) |
 |---|---|---|---|---|---|---|---|---|---|---|
 | [`0xaedd…53f9`](https://testnet.monadvision.com/address/0xaedd433235a6d5605535fcabbc157d6bde4253f9) (e2e) | ETH | long | 3x | 0.073 | 2711.07 | 2707.68 | −0.247230 | 0.136474 | −0.004240 | **−0.387944** |
 | [`0x96e2…d7fa`](https://testnet.monadvision.com/address/0x96e279d0ac6fe012aa5d2a23c5c0d49dfa76d7fa) (soak) | ETH | long | 2x | 0.014 | 2715.92 | 2697.59 | −0.256620 | 0.026148 | −0.013300 | **−0.296068** |
 | [`0x80a2…cffb`](https://testnet.monadvision.com/address/0x80a2fde41c83b25487ed12f2e25082e00232ffcb) (soak) | BTC | short | 2x | 0.00045 | 85763.20 | 85584.10 | +0.080595 | 0.026602 | +0.014535 | **+0.068528** |
-| [`0x3f0d…7ee9`](https://testnet.monadvision.com/address/0x3f0d18db2021255b35885fce4579a492f3a07ee9) | ETH | long | 3x | 0.116 | 2497.08 | open | open | 0.099934 | 0 so far | open |
-| **Settled total** | | | | | | | **−0.423255** | **0.189224** | **−0.003005** | **−0.615484** |
+| [`0x3f0d…7ee9`](https://testnet.monadvision.com/address/0x3f0d18db2021255b35885fce4579a492f3a07ee9) | ETH | long | 3x | 0.116 | 2497.08 | 2508.36 | +1.308480 | 0.200319 | −0.911760 | **+0.196401** |
+| `0xa81b…` (NEAR demo) | NEAR | long | 3x | 28.91 | 5.03 | 5.01 | −0.453887 | 0.100188 | −0.040590 | **−0.594665** |
+| `0x1076…` | BTC | long | 10x | 0.05428 | 83445.80 | 83097.80 | −18.889440 | 3.118797 | −0.396244 | **−22.404481** |
+| `0x4cc8…` | ETH | long | 3x | 0.058 | 2492.38 | open | open | 0.049873 | 0 so far | open |
+| **Settled total (6)** | | | | | | | **−18.458102** | **3.608528** | **−1.351599** | **−23.418229** |
 
 Gross = sell notional − buy notional over the position's fills. Net = gross − fees + funding. Every fee is the 0.0345% taker rate (for example, 0.053 ETH × 2711.29 × 0.000345 = 0.049576). The e2e position's 0.073 ETH includes B's 0.02 ETH buy-in. It was closed in three parts: the redeem, the stop-loss and the final close.
 
@@ -218,7 +221,7 @@ No strategy bot was run for this submission; a funding-rate demo strategy is on 
 | Reliable execution | Every open is resumable, and an order with an unknown result is decided on-chain and never sent twice. | §4; `requests.test.ts:22`; [`e2e-run.md`](e2e-run.md) |
 | Good risk management | Caps per market, an on-chain venue check, a mark the operator cannot set, tiered LTV, and liquidation that never pauses. | §5.1; `Venue.js`, `Lending.js` |
 | Ability to be profitable | Laxu makes a trader's results verifiable and lets them earn 2% of buy-ins | §5.2 |
-| Real on-chain activity | 69 Perpl orders, 37 fills, 4 tokens, 4 pools, 7 borrows and 1 repay, plus a full verified transaction trail. | §7 |
+| Real on-chain activity | 76 Perpl orders, 43 fills, 7 position tokens and 7 lending pools (13 Oct), plus on-chain borrows, repays and an automated protection repay, plus a full verified transaction trail. | §7 |
 | **Known gaps** | 1008 socket closes are open; 5 slots; no strategy bot; funding is operator-reported | §10 |
 
 ## 7. Real on-chain activity
@@ -249,37 +252,34 @@ Network: Monad testnet, chain ID 10143. Timeframe: 5 Oct 2026 16:22 UTC (first f
 | Claim | [`0xafb6a727…`](https://testnet.monadvision.com/tx/0xafb6a72763a8ee36eb7a77f2627256b36abe7b65a4f3d76b9e056f1e493907bc) | Laxu operator | A is paid |
 | Refund | [`0x972409ff…`](https://testnet.monadvision.com/tx/0x972409ff7f869d7f640ca8acbcccb99d725f828169ba7245e1cc294dd7b4a269) | Slot wallet `0xef12…2be5` | A wrong payment is returned in full |
 
-**Activity summary.** Command: `cd Backend && npm run perpl:report -- --with-logs`, run on 9 Oct 2026 (chain head 69649262). It sends nothing. Output, with the wallet column dropped (wallets are listed below):
+**Activity summary.** Command: `cd Backend && npm run perpl:report`, run on 13 Oct 2026 (chain head 70795978). It sends nothing. Output, with the wallet column dropped (wallets are listed below):
 
 ```
-Perpl accounts (2 slots in the database)
+Perpl accounts (5 slots in the database)
 | Slot   | Account | Status    | Orders | Filled orders | Fills | First fill           | Last fill            |
-| sqmnb8 | 824     | allocated | 29     | 27            | 27    | 2026-10-05T16:22:15Z | 2026-10-09T16:13:24Z |
-| 6cc1x5 | 841     | free      | 40     | 10            | 10    | 2026-10-05T16:31:26Z | 2026-10-06T07:58:18Z |
-| All    |         |           | 69     | 37            | 37    |                      |                      |
+| sqmnb8 | 824     | free      | 31     | 28            | 28    | 2026-10-05T16:22:15Z | 2026-10-13T09:18:19Z |
+| 6cc1x5 | 841     | free      | 42     | 12            | 12    | 2026-10-05T16:31:26Z | 2026-10-13T17:28:05Z |
+| 5dqv7c | 1063    | free      | 2      | 2             | 2     | 2026-10-13T16:11:07Z | 2026-10-13T18:03:48Z |
+| 1mmqxt | 1064    | free      | 0      | 0             | 0     | -                    | -                    |
+| ldql3x | 1065    | allocated | 1      | 1             | 1     | 2026-10-13T10:50:26Z | 2026-10-13T10:50:26Z |
+| All    |         |           | 76     | 43            | 43    |                      |                      |
 
 Database
-- open requests by status: refunded 1, minted 4
-- positions by status: open 1, settled 3
-- flows by type: open 4, claim 2, buy_in 1, redeem 1, trigger_exit 1
-- NAV report rows (position_reports): 153
-- users: 4; distinct creators: 3; distinct flow wallets: 3; distinct holder rows' wallets: 4
-- open requests from 2026-10-05T18:57:22.754Z to 2026-10-09T16:12:43.872Z
+- open requests by status: minted 7, failed 4, refunded 7
+- positions by status: open 1, settled 6
+- flows by type: open 7, claim 5, buy_in 1, redeem 1, trigger_exit 1
+- NAV report rows (position_reports): 2076
+- users: 4; distinct creators: 4; distinct flow wallets: 4; distinct holder rows' wallets: 8
+- open requests from 2026-10-05T18:57:22.754Z to 2026-10-13T16:53:52.858Z
 
-On-chain (head 69649262)
-- PositionTokenFactory.allPositionsCount() = 4
-- LendingPoolFactory.allPoolsCount() = 4
-| Pool        | Token       | Blocks scanned    | Deposits | Withdrawals | Borrows | Repays | Liquidations |
-| 0x5566777b… | 0xaedd4332… | 68478350–68495929 | 1        | 1           | 7       | 1      | 0            |
-| 0xac3ff65a… | 0x96e279d0… | 68499558–68627585 | 0        | 0           | 0       | 0      | 0            |
-| 0x3ab5b933… | 0x80a2fde4… | 68499982–68634331 | 0        | 0           | 0       | 0      | 0            |
-| 0xb3a91c5c… | 0x3f0d18db… | 69583601–69649262 | 0        | 0           | 0       | 0      | 0            |
-Lending totals: CollateralDeposited 1, Borrowed 7, Repaid 1, CollateralWithdrawn 1; distinct borrower wallets: 1
+On-chain (head 70795978)
+- PositionTokenFactory.allPositionsCount() = 7
+- LendingPoolFactory.allPoolsCount() = 7
 ```
 
-How to read it: the 69 orders include our probe and experiment orders, not only orders for users. Of the 37 fills, 10 belong to the four Laxu positions and 27 to the probes (5 Oct). Most of the 30 unfilled orders on account 841 match the BTC close that was retried during the soak (9 resumes of up to 3 attempts, `e2e-run.md` finding 3). All lending activity is user A's in the e2e run: 1 borrow in step 3 and 6 small borrows in step 8, then 1 repay. These numbers are small, and they are shown as they are.
+How to read it: the 76 orders include our probe and experiment orders from 5 Oct, not only orders for users; 27 of the fills belong to those probes. Most unfilled orders on account 841 match the BTC close that was retried during the soak (`e2e-run.md` finding 3). Every failed or unfilled open was refunded or never charged (7 refunded, 4 failed before payment). Lending events were last scanned with `--with-logs` on 9 Oct: 1 deposit, 7 borrows, 1 repay and 1 withdrawal, all user A's in the e2e run. Since then the loan-protection worker repaid a loan from a user's embedded wallet ([`0x882f5ef4…`](https://testnet.monadscan.com/tx/0x882f5ef469f9f72ae7e16dada69ad39dfbbefcf127a3b26be370daf18465e099), [`PRIVY.md`](PRIVY.md)). These numbers are small, and they are shown as they are.
 
-**Perpl accounts used** (public): slot 1 wallet [`0x27faec53e9fdae9e4fac0af5cc4731e77ae8e503`](https://testnet.monadvision.com/address/0x27faec53e9fdae9e4fac0af5cc4731e77ae8e503), account **824**; slot 2 wallet [`0xef12476197422eab5277866d4170e64974532be5`](https://testnet.monadvision.com/address/0xef12476197422eab5277866d4170e64974532be5), account **841**. Perpl Exchange: [`0x1964C32f0bE608E7D29302AFF5E61268E72080cc`](https://testnet.monadvision.com/address/0x1964C32f0bE608E7D29302AFF5E61268E72080cc).
+**Perpl accounts used** (public): account **824**, slot wallet [`0x27fa…e503`](https://testnet.monadvision.com/address/0x27faec53e9fdae9e4fac0af5cc4731e77ae8e503); **841**, [`0xef12…2be5`](https://testnet.monadvision.com/address/0xef12476197422eab5277866d4170e64974532be5); **1063**, [`0x1ff8…5b9c`](https://testnet.monadvision.com/address/0x1ff8798c048fd1386da8c984a3aad04587e89b5c); **1064**, [`0xbc10…659f`](https://testnet.monadvision.com/address/0xbc1065dc39727405011b691fb654848b937d659f); **1065**, [`0x35b2…7910`](https://testnet.monadvision.com/address/0x35b231c57de387f4c339cf7cb8f929cc15f77910). Perpl Exchange: [`0x1964C32f0bE608E7D29302AFF5E61268E72080cc`](https://testnet.monadvision.com/address/0x1964C32f0bE608E7D29302AFF5E61268E72080cc).
 
 ## 8. Screenshots
 
