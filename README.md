@@ -8,7 +8,7 @@ Borrow against your open perp trade while it keeps running.
 | **Trading** | Perpl |
 | **Wallets** | Privy wallets and loan protection |
 | **Demo video (3 min)** | ⚠ TODO (video URL) |
-| **Live app** | ⚠ TODO (hosted URL; until then, [run it locally](#run-it-locally)) |
+| **Live app** | <https://laxu-monad.vercel.app> |
 | **Litepaper** | [PDF](docs/LITEPAPER.pdf) · [Markdown](docs/LITEPAPER.md) |
 
 > Testnet only, no real funds. Laxu is an independent project built on Perpl, not affiliated with or endorsed by Perpl, Monad or Privy. The contracts are unaudited.
@@ -178,7 +178,7 @@ The full commit history is in this repository.
 
 ## Try it yourself (for judges)
 
-⚠ TODO: hosted app URL. Until it exists, [run it locally](#run-it-locally); the steps are the same at `http://localhost:3000`.
+Open <https://laxu-monad.vercel.app>. You can also [run it locally](#run-it-locally); the steps are the same at `http://localhost:3000`.
 
 1. **Sign in** with email (needed for loan protection) or a wallet.
 2. **Get test funds:** AUSD from Perpl's faucet (10,000 per claim when observed) and MON topped up to 0.5. Once per 24 hours.
