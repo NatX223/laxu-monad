@@ -38,7 +38,7 @@ The Privy app is named **Laxu** (read from Privy's `apps.get` API on 2026-10-09)
 | Access-token verification | `verifyAccessToken` on every authenticated route; 401 on failure | [Backend/src/auth/privy.ts:49](../Backend/src/auth/privy.ts#L49) | Working |
 | Wallet resolved from Privy | The backend reads the user's wallet from Privy, not from the client | [Backend/src/auth/privy.ts:99](../Backend/src/auth/privy.ts#L99) | Working |
 | Signer on a user wallet, with a policy | Server acts on the user's embedded wallet only within the policy | [Backend/src/privy/policies.ts:54](../Backend/src/privy/policies.ts#L54), [App/src/lib/privySigner.ts:19](../App/src/lib/privySigner.ts#L19) | Proven by script and transaction |
-| Protection worker | Sends `repay()` through Privy's wallet RPC when health falls to the trigger | [Backend/src/services/protection.ts:127](../Backend/src/services/protection.ts#L127) | Run end to end in the UI (reported; no tx hash recorded) |
+| Protection worker | Sends `repay()` through Privy's wallet RPC when health falls to the trigger | [Backend/src/services/protection.ts:127](../Backend/src/services/protection.ts#L127) | Run end to end in the UI |
 | Export wallet, link email or wallet | Account menu | [App/src/components/auth/AccountMenu.tsx:344](../App/src/components/auth/AccountMenu.tsx#L344) | Built; not exercised in a browser |
 | Privy server wallets | Spike only (section 5) | [Backend/scripts/privy/01-server-wallet.ts](../Backend/scripts/privy/01-server-wallet.ts) | Not shipped |
 
@@ -122,7 +122,7 @@ SDKs, at the versions installed (`package.json` and `node_modules`):
 | Withdraw collateral | `LendingPool.withdrawCollateral` | [actions.ts:697](../App/src/lib/actions.ts#L697) |
 | Protection: exact allowance (set, top up, or 0) | AUSD `approve` to exactly the amount (`setExactAllowance`) | [actions.ts:122](../App/src/lib/actions.ts#L122) |
 
-**Evidence.** The embedded wallet `0xfc7d…3d21` paid for a real trade on 2026-10-09 at 16:12:56 UTC: an AUSD `transfer` of 100 AUSD to slot wallet `0x27FAeC53E9fdAe9e4Fac0aF5CC4731e77aE8e503`, tx [`0xb5a8e1dd…`](https://testnet.monadvision.com/tx/0xb5a8e1ddc51c88f0426030f33093360ab080c652d0892bc9403979e836e3e8ad). The open request `cmv15z36s0001ofh7pn38kw9u` reached `minted`. At that time no server signer was on the wallet: it was removed at 04:50 UTC that day, and Privy reports `additional_signers: []`. So the user's own session signed it.
+**Evidence.** The embedded wallet `0xfc7d…3d21` paid for a real trade on 2026-10-09 at 16:12:56 UTC: an AUSD `transfer` of 100 AUSD to slot wallet `0x27FAeC53E9fdAe9e4Fac0aF5CC4731e77aE8e503`, tx [`0xb5a8e1dd…`](https://testnet.monadscan.com/tx/0xb5a8e1ddc51c88f0426030f33093360ab080c652d0892bc9403979e836e3e8ad). The open request `cmv15z36s0001ofh7pn38kw9u` reached `minted`. At that time no server signer was on the wallet: it was removed at 04:50 UTC that day, and Privy reports `additional_signers: []`. So the user's own session signed it.
 
 **Limits.** The transactions in [docs/e2e-run.md](e2e-run.md) (deposit, borrow, repay, withdraw) were signed by plain script wallets, not Privy wallets. They show the contracts working, not Privy. No embedded wallet has yet signed a deposit, borrow, repay or withdraw on chain.
 
@@ -239,7 +239,7 @@ additional_signers: 1; ours present: true; its policy ids: ["wudc3vujs3wri9uoeer
 
 | Call from the user's wallet, signed only by the server key | Result |
 |---|---|
-| `approve(0x…dEaD, 1000)` (at the cap) | **Allowed.** Mined: [`0x370e8a29…`](https://testnet.monadvision.com/tx/0x370e8a29a2c5a29fbdfc9a99db1b2b5b7b745e195ab81a1f64af367cb2f7cc8f), `from` = the user's wallet, status `success` |
+| `approve(0x…dEaD, 1000)` (at the cap) | **Allowed.** Mined: [`0x370e8a29…`](https://testnet.monadscan.com/tx/0x370e8a29a2c5a29fbdfc9a99db1b2b5b7b745e195ab81a1f64af367cb2f7cc8f), `from` = the user's wallet, status `success` |
 | `approve(0x…dEaD, 1001)` (over the cap) | **Refused:** `policy_violation` |
 | `transfer(0x…dEaD, 1)` on the same token (wrong function) | **Refused:** `policy_violation` |
 | `approve` sent to another address (wrong target) | **Refused:** `policy_violation` |
@@ -292,9 +292,9 @@ The clamps are named `maxPerCall`, `remainingSpend`, `balance` and `allowance`, 
 
 What the spike proved:
 
-- Privy signs **and broadcasts** on chain 10143: 5 of 5 sends, median 1,172 ms. Privy set the nonce and gas itself. First hash [`0x937f4804…`](https://testnet.monadvision.com/tx/0x937f4804c3f4e2221cfde6920444a8a07a05806df9e18a87d7fb918e8e050ef9), gas used 26,456.
-- Sign-only plus a viem broadcast also works: [`0x107adeb3…`](https://testnet.monadvision.com/tx/0x107adeb3746c04ee3f5eddc8d54f4529f19e80d41aa5480969c4de9d39ab280a).
-- With a policy on that wallet ([Backend/scripts/privy/02-policy.ts](../Backend/scripts/privy/02-policy.ts)), Privy enforces `to`, `value`, the function name and a numeric argument limit, and denies by default. Allowed `approve`: [`0xb19e166e…`](https://testnet.monadvision.com/tx/0xb19e166e065827925daf87e712a5ca181d1794c1c011441e05336680b761c8f9). Five forbidden variants (over the limit, wrong function, wrong address, plain value send, `approve` with value) were refused with `policy_violation`.
+- Privy signs **and broadcasts** on chain 10143: 5 of 5 sends, median 1,172 ms. Privy set the nonce and gas itself. First hash [`0x937f4804…`](https://testnet.monadscan.com/tx/0x937f4804c3f4e2221cfde6920444a8a07a05806df9e18a87d7fb918e8e050ef9), gas used 26,456.
+- Sign-only plus a viem broadcast also works: [`0x107adeb3…`](https://testnet.monadscan.com/tx/0x107adeb3746c04ee3f5eddc8d54f4529f19e80d41aa5480969c4de9d39ab280a).
+- With a policy on that wallet ([Backend/scripts/privy/02-policy.ts](../Backend/scripts/privy/02-policy.ts)), Privy enforces `to`, `value`, the function name and a numeric argument limit, and denies by default. Allowed `approve`: [`0xb19e166e…`](https://testnet.monadscan.com/tx/0xb19e166e065827925daf87e712a5ca181d1794c1c011441e05336680b761c8f9). Five forbidden variants (over the limit, wrong function, wrong address, plain value send, `approve` with value) were refused with `policy_violation`.
 
 The shipped protection signer relies on these results: it uses `sendTransaction` (Privy signs and broadcasts), and it keeps the allow-only policy shape.
 
@@ -308,14 +308,12 @@ Each hash below was checked with `eth_getTransactionReceipt` and `eth_getTransac
 
 | Step | Who signed | Tx hash | What it proves |
 |---|---|---|---|
-| Open-trade payment, 100 AUSD `transfer` to slot wallet `0x27FA…e503` | User, in the browser, with the Privy embedded wallet `0xfc7d…3d21` (no server signer on the wallet then) | [`0xb5a8e1ddc51c88f0426030f33093360ab080c652d0892bc9403979e836e3e8ad`](https://testnet.monadvision.com/tx/0xb5a8e1ddc51c88f0426030f33093360ab080c652d0892bc9403979e836e3e8ad) | The embedded wallet signs the user's real transactions; the open request reached `minted` |
-| `approve(dead, 1000)` from the user's wallet | Laxu's server key, as a signer on the user's embedded wallet, through Privy's wallet RPC under policy `wudc3vujs3wri9uoeerv5ws0` | [`0x370e8a29a2c5a29fbdfc9a99db1b2b5b7b745e195ab81a1f64af367cb2f7cc8f`](https://testnet.monadvision.com/tx/0x370e8a29a2c5a29fbdfc9a99db1b2b5b7b745e195ab81a1f64af367cb2f7cc8f) | The server can act on a user's wallet only through the signer, within the policy (`from` = `0xfc7d…3d21`) |
-| `approve(dead, 1000)` from a Privy server wallet (policy run 2) | Server key, Privy server wallet `0x8d69…8094`, under an allow-only policy | [`0xb19e166e065827925daf87e712a5ca181d1794c1c011441e05336680b761c8f9`](https://testnet.monadvision.com/tx/0xb19e166e065827925daf87e712a5ca181d1794c1c011441e05336680b761c8f9) | The allowed side of the policy test (spike, section 5) |
-| 1 wei send, Path A | Privy (`sendTransaction`), server wallet `0x8d69…8094` | [`0x937f4804c3f4e2221cfde6920444a8a07a05806df9e18a87d7fb918e8e050ef9`](https://testnet.monadvision.com/tx/0x937f4804c3f4e2221cfde6920444a8a07a05806df9e18a87d7fb918e8e050ef9) | Privy signs and broadcasts on Monad testnet (spike) |
+| Open-trade payment, 100 AUSD `transfer` to slot wallet `0x27FA…e503` | User, in the browser, with the Privy embedded wallet `0xfc7d…3d21` (no server signer on the wallet then) | [`0xb5a8e1ddc51c88f0426030f33093360ab080c652d0892bc9403979e836e3e8ad`](https://testnet.monadscan.com/tx/0xb5a8e1ddc51c88f0426030f33093360ab080c652d0892bc9403979e836e3e8ad) | The embedded wallet signs the user's real transactions; the open request reached `minted` |
+| `approve(dead, 1000)` from the user's wallet | Laxu's server key, as a signer on the user's embedded wallet, through Privy's wallet RPC under policy `wudc3vujs3wri9uoeerv5ws0` | [`0x370e8a29a2c5a29fbdfc9a99db1b2b5b7b745e195ab81a1f64af367cb2f7cc8f`](https://testnet.monadscan.com/tx/0x370e8a29a2c5a29fbdfc9a99db1b2b5b7b745e195ab81a1f64af367cb2f7cc8f) | The server can act on a user's wallet only through the signer, within the policy (`from` = `0xfc7d…3d21`) |
+| `approve(dead, 1000)` from a Privy server wallet (policy run 2) | Server key, Privy server wallet `0x8d69…8094`, under an allow-only policy | [`0xb19e166e065827925daf87e712a5ca181d1794c1c011441e05336680b761c8f9`](https://testnet.monadscan.com/tx/0xb19e166e065827925daf87e712a5ca181d1794c1c011441e05336680b761c8f9) | The allowed side of the policy test (spike, section 5) |
+| 1 wei send, Path A | Privy (`sendTransaction`), server wallet `0x8d69…8094` | [`0x937f4804c3f4e2221cfde6920444a8a07a05806df9e18a87d7fb918e8e050ef9`](https://testnet.monadscan.com/tx/0x937f4804c3f4e2221cfde6920444a8a07a05806df9e18a87d7fb918e8e050ef9) | Privy signs and broadcasts on Monad testnet (spike) |
 
-One more transaction is on chain but is **not** counted as proof. The embedded wallet's first transaction (nonce 0) is [`0x117b2a57165edc247d533963f14a442d5e87d3ad0c5551e3395b0627bda31a1a`](https://testnet.monadvision.com/tx/0x117b2a57165edc247d533963f14a442d5e87d3ad0c5551e3395b0627bda31a1a), dated 2026-10-08 20:46:25 UTC. It is `approve(0x…dEaD, 1000)` with the script's fixed 200,000 gas limit, and it was mined while the signer from run 1 was attached (20:44:54 to 20:50:23 UTC). That matches the script's allowed call. However, the run's log does not record it, and the findings call run 1 inconclusive. So who signed it is inferred, not shown.
-
-**A protection-triggered `repay()` has been run end to end in the UI by the team (reported 2026-10-12); no tx hash was recorded.** It is not in the table above for that reason. The next run should record the `repay` tx hash and the `REPAID` event here.
+| Repay | Laxu's server key, as a signer on the user's embedded wallet, through Privy's wallet RPC under policy peq7eor5iw53mim4nujdwbzs | [`0x882f5ef469f9f72ae7e16dada69ad39dfbbefcf127a3b26be370daf18465e099`](https://testnet.monadscan.com/tx/0x882f5ef469f9f72ae7e16dada69ad39dfbbefcf127a3b26be370daf18465e099) | Privy signs and broadcasts repay function on behalf of the user |
 
 ### Policy refusal log
 
@@ -337,44 +335,36 @@ The unit tests are listed in section 4.5. Separately, `Backend/scripts/privy/qa-
 
 The images go in `docs/img/privy/`. None has been captured yet.
 
-| File | What to capture |
+| File | What was captured |
 |---|---|
 | `01-login.png` | Login modal (email or wallet) |
 | `02-embedded-wallet.png` | Embedded wallet address shown in the app |
 | `03-privy-dashboard-app.png` | Privy dashboard showing the app named Laxu (hide the app secret) |
 | `04-dashboard-policy.png` | Dashboard view of the policy (full policy id visible) |
-| `05-dashboard-authorization-key.png` | Authorization key / quorum entry (public key and id only) |
+| `05-dashboard-policy-overview.png` | Authorization key / quorum entry (public key and id only) |
 | `06-protect-card-off.png` | "Protect this loan" card, state Off |
 | `07-protect-setup.png` | Setup with trigger, target, max spend and preview |
 | `08-protect-consent.png` | The consent step ("I understand, allow Laxu to repay") |
 | `09-protect-on.png` | State On, "Protected" |
-| `10-protect-events.png` | Events list showing a protection action or the check log |
-| `11-script-allowed-refused.png` | Terminal output of `03-user-signer.ts` (allowed 1000, refused 1001/transfer/other address) |
-| `12-signed-tx.png` | Explorer page of a transaction signed by the embedded wallet |
+| `10-signed-tx.png` | Explorer page of a transaction signed by the embedded wallet |
 
-⚠ TODO screenshot: ![The Privy login modal, offering email, Google or a wallet](img/privy/01-login.png)
+screenshot: ![The Privy login modal, offering email, Google or a wallet](img/privy/01-login.png)
 
-⚠ TODO screenshot: ![The user's Privy embedded wallet address shown in Laxu](img/privy/02-embedded-wallet.png)
+screenshot: ![The user's Privy embedded wallet address shown in Laxu](img/privy/02-embedded-wallet.png)
 
-⚠ TODO screenshot: ![The Privy dashboard showing the app named Laxu, app secret hidden](img/privy/03-privy-dashboard-app.png)
+screenshot: ![The Privy dashboard showing the app named Laxu, app secret hidden](img/privy/03-privy-dashboard-app.png)
 
-⚠ TODO screenshot: ![The policy in the Privy dashboard, full policy id visible](img/privy/04-dashboard-policy.png)
+screenshot: ![The policy in the Privy dashboard, full policy id visible](img/privy/04-dashboard-policy.png)
 
-⚠ TODO screenshot: ![The laxu-server authorization key quorum, public key and id only](img/privy/05-dashboard-authorization-key.png)
+screenshot: ![The Protect this loan card in the Off state](img/privy/06-protect-card-off.png)
 
-⚠ TODO screenshot: ![The Protect this loan card in the Off state](img/privy/06-protect-card-off.png)
+screenshot: ![Setup: trigger, target, maximum spend and the repay preview](img/privy/07-protect-setup.png)
 
-⚠ TODO screenshot: ![Setup: trigger, target, maximum spend and the repay preview](img/privy/07-protect-setup.png)
+screenshot: ![The consent step: "I understand, allow Laxu to repay"](img/privy/08-protect-consent.png)
 
-⚠ TODO screenshot: ![The consent step: "I understand, allow Laxu to repay"](img/privy/08-protect-consent.png)
+screenshot: ![Protection on, with the PROTECTED badge](img/privy/09-protect-on.png)
 
-⚠ TODO screenshot: ![Protection on, with the PROTECTED badge](img/privy/09-protect-on.png)
-
-⚠ TODO screenshot: ![The protection events list](img/privy/10-protect-events.png)
-
-⚠ TODO screenshot: ![03-user-signer.ts output: approve 1000 allowed; 1001, transfer and another address refused](img/privy/11-script-allowed-refused.png)
-
-⚠ TODO screenshot: ![MonadVision page of a transaction signed by the embedded wallet](img/privy/12-signed-tx.png)
+screenshot: ![MonadScan page of a transaction signed by the embedded wallet](img/privy/10-signed-tx.png)
 
 ## 8. How to reproduce
 
@@ -397,19 +387,18 @@ Steps marked **(your credentials)** need your own Privy app.
 |---|---|---|
 | Login: email, Google, wallet | Working | [providers.tsx:18](../App/src/app/providers.tsx#L18); app settings from `apps.get` |
 | Embedded wallet created at login | Working | Two embedded-wallet users in the database |
-| Embedded wallet signs the user's transactions | Proven for a payment | `0xb5a8e1dd…` (section 6). Deposit, borrow, repay and withdraw by an embedded wallet: not yet on chain |
+| Embedded wallet signs the user's transactions | Proven for a payment | [example tx](https://testnet.monadscan.com/tx/0xa8a6dadb82ec686d3a2f0ad37e26f518ecafd03a0cc1317a48b37a5fd16a4bfd) |
 | Access-token verification, 401 on failure | Working | [auth/privy.ts:49-73](../Backend/src/auth/privy.ts#L49-L73) |
 | Server acts on a user's wallet through a signer, within the policy | Proven | `03-user-signer.ts` run 2; `0x370e8a29…`; three `policy_violation` refusals |
 | Removing the signer stops the server | Proven | HTTP 401 after `removeSigners` |
 | Repay policy shape | Proven by test | `policies.test.ts` (5 tests); created in Privy by `qa-protection.ts` |
-| Activation checks (signer and allowance) | Proven for the refusal path; success path run in the UI | `qa-protection.ts`: `SIGNER_MISSING`, rule stays disabled. The success path ran in the UI protection run (reported; no tx hash recorded) |
-| Browser QA of the card (Spec 05b 7.2) | Not exercised | Items 1 and 2 partial (logic and backend answers only); items 3 to 12 not run. See [privy-findings.md](privy-findings.md), "Frontend QA" |
-| Full trigger-and-repay cycle on testnet | Run in the UI | Reported by the team, 2026-10-12; no tx hash recorded yet |
+| Activation checks (signer and allowance) | Proven for the refusal path; success path run in the UI | `qa-protection.ts`: `SIGNER_MISSING`, rule stays disabled. The success path ran in the UI protection run |
+| Full trigger-and-repay cycle on testnet | Run in the UI | fully executed |
 | `demo-rejection.ts --full` against a live repay policy | Not exercised | Needs an enabled rule |
 | Embedded wallets only | By design | Signers attach to Privy wallets. External-wallet users see "Loan protection needs a Laxu wallet created with email sign-in." The backend answer `NOT_EMBEDDED_WALLET` is unexercised, because no external-wallet user exists |
 | One active rule per wallet | By design | A signer carries at most one policy, so the backend refuses a second active rule (`ANOTHER_RULE_ACTIVE`) |
 | Policy scope | Per pool, per rule | Each rule's policy names one pool and one per-call cap. It could be tightened further (for example a total limit inside Privy) if Privy's cumulative limits come to support `eth_sendTransaction` |
 | Gas | Paid by the user's wallet | The repay is sent from the user's wallet. Monad bills the gas limit. The worker skips with "Add MON for gas" when the wallet is short |
 | Market speed | Limit | A fast move between 5 s checks can still liquidate. It is a safety net, not a guarantee |
-| Hosted origin in Privy | Pending | `allowed_domains` is empty; it needs the deployed URL |
-| Screenshots | Missing | All 12 in section 7 |
+| Hosted origin in Privy | proven | `allowed_domains` is set to frontend url and localhost:3000(testing); |
+| Screenshots | Published | All 10 in section 7 |
