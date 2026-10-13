@@ -133,7 +133,8 @@ Monad charges the gas limit, and the backend adds 30% to every estimate (`GAS_BU
 - **User-signed transactions:** the user's wallet signs every payment, approval and lending call through Privy's provider.
 - **Token verification:** the backend verifies the Privy access token on every authenticated call and reads the user's wallet from Privy, never from the request.
 - **Signers and policies:** for loan protection, Laxu's server key is added as a signer on the user's embedded wallet, under a policy that allows only `repay()` on one pool, up to a per-call cap, on chain 10143.
-- **Proof:** with only the server key, an allowed call from a user's wallet was mined and three forbidden calls were refused with `policy_violation` (Privy app: Laxu).
+- **Proof:** with only the server key, an allowed call from a user's wallet was mined and three forbidden calls were refused with `policy_violation` (Privy app: Laxu). Loan protection then ran end to end: the worker's repay [`0x882f5ef4…`](https://testnet.monadscan.com/tx/0x882f5ef469f9f72ae7e16dada69ad39dfbbefcf127a3b26be370daf18465e099) was sent from the user's embedded wallet under the live repay policy.
+- **Configuration:** Privy allowed origins are the hosted app `https://laxu-monad.vercel.app` and `http://localhost:3000`.
 
 Full explanation, policy, evidence and screenshots: [docs/PRIVY.md](docs/PRIVY.md)
 
@@ -242,11 +243,10 @@ Steps 1, 2, 5 and 9 of that run passed only after a fix or a corrected check; th
 - On-chain mark; funding pushes on threshold or heartbeat (step 2).
 - Buy-in, redeem, per-holder stop-loss, close → settle → claim (steps 5–7, 9).
 - Borrowing with the backend down (step 8).
-- Loan protection, server side: a 22-of-22 QA run against the real database, chain and Privy (validation, refusals, activation checks, worker no-debt and wallet-mismatch paths; no transaction sent). Signer and policy enforcement measured on testnet. The full trigger-and-repay cycle ran end to end on 2026-10-13: repay [`0x882f5ef4…`](https://testnet.monadscan.com/tx/0x882f5ef469f9f72ae7e16dada69ad39dfbbefcf127a3b26be370daf18465e099).
+- Loan protection end to end: on 2026-10-13 the worker repaid a real loan from the user's embedded wallet through Privy, under the repay-only policy (repay [`0x882f5ef4…`](https://testnet.monadscan.com/tx/0x882f5ef469f9f72ae7e16dada69ad39dfbbefcf127a3b26be370daf18465e099); screenshots in [docs/PRIVY.md](docs/PRIVY.md#7-screenshots)). Before that, a 22-of-22 server QA run against the real database, chain and Privy, and signer and policy enforcement measured on testnet.
 
 ### Doesn't work yet / limited
 
-- **Full protection cycle not run:** no testnet run yet of a real loan crossing its trigger and being repaid by the worker. **Browser QA of the protection card has not been run.**
 - **WebSocket `1008 ping timeout`:** Perpl's testnet closes trading sockets (6–9 per socket in a 53-minute soak; 1 per socket in a later 30-minute idle run, at the 2-per-hour budget, not under it). Laxu answers every ping at once, and two separate sockets closed within 5 ms of each other, which points at the server. Interrupted orders are decided on-chain; no money was affected. Not resolved.
 - **Pending with Perpl:** origin whitelisting (needed for key enrollment and direct browser market data) and a builder code, Perpl pointed us to its builder program; the registration form (builder id and CORS origin) is submitted, no reply yet. Builder-code support is built behind a flag that is off.
 - **Custody:** Laxu's slot wallets hold the Perpl accounts. Per-user delegated accounts are planned, pending exchange support.
