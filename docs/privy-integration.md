@@ -109,7 +109,6 @@ Every `PROTECTION_INTERVAL_MS` (5 s) it reads `healthFactor` and `currentDebt` f
 **Not yet run (do not read this page as claiming them):**
 - The browser QA list of Spec 05b section 7.2, beyond the parts above. See `docs/privy-findings.md`, "Frontend QA", for each item and its status.
 - The rejection script against a live protection rule: `npx ts-node --transpile-only scripts/privy/demo-rejection.ts --full` (saves `Backend/.e2e/privy-rejections.json`).
-- Screenshots of the card.
 
 ## Running it
 
