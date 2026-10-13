@@ -38,7 +38,7 @@ The Privy app is named **Laxu** (read from Privy's `apps.get` API on 2026-10-09)
 | Access-token verification | `verifyAccessToken` on every authenticated route; 401 on failure | [Backend/src/auth/privy.ts:49](../Backend/src/auth/privy.ts#L49) | Working |
 | Wallet resolved from Privy | The backend reads the user's wallet from Privy, not from the client | [Backend/src/auth/privy.ts:99](../Backend/src/auth/privy.ts#L99) | Working |
 | Signer on a user wallet, with a policy | Server acts on the user's embedded wallet only within the policy | [Backend/src/privy/policies.ts:54](../Backend/src/privy/policies.ts#L54), [App/src/lib/privySigner.ts:19](../App/src/lib/privySigner.ts#L19) | Proven by script and transaction |
-| Protection worker | Sends `repay()` through Privy's wallet RPC when health falls to the trigger | [Backend/src/services/protection.ts:127](../Backend/src/services/protection.ts#L127) | Run end to end in the UI |
+| Protection worker | Sends `repay()` through Privy's wallet RPC when health falls to the trigger | [Backend/src/services/protection.ts:127](../Backend/src/services/protection.ts#L127) | Proven by transaction (section 6) |
 | Export wallet, link email or wallet | Account menu | [App/src/components/auth/AccountMenu.tsx:344](../App/src/components/auth/AccountMenu.tsx#L344) | Built; not exercised in a browser |
 | Privy server wallets | Spike only (section 5) | [Backend/scripts/privy/01-server-wallet.ts](../Backend/scripts/privy/01-server-wallet.ts) | Not shipped |
 
@@ -51,9 +51,9 @@ The Privy app is named **Laxu** (read from Privy's `apps.get` API on 2026-10-09)
 | Signer (key quorum) ID | `pwgeso78bs5m8sqm5z24khor` | Value of `PRIVY_SIGNER_ID`. It is an identifier, not a key |
 | Key quorum setup | Display name `laxu-server`, threshold 1, one P-256 authorization key, no user members | Read from Privy's `keyQuorums.get` on 2026-10-09; created by `00-create-signer.ts` |
 | **Policy ID (full)** | **`wudc3vujs3wri9uoeerv5ws0`** | The policy that was attached to the user signer in the proof run (section 4.4). Named `laxu-spike P1 allow-only`, owned by the quorum above. Read from `docs/privy-findings.md`, `Backend/.e2e/privy-spike.json` and Privy's `policies.get` on 2026-10-09 |
-| Loan-protection policy IDs | One per protection rule, created at setup | Built by `buildRepayPolicy`. No protection rule exists in the database today (0 rows), so no live repay policy id exists to print |
+| Loan-protection policy IDs | One per protection rule, created at setup | Built by `buildRepayPolicy`. The rule behind the repay in section 6 uses `peq7eor5iw53mim4nujdwbzs`, named `laxu-repay-0xB3a91c5c`, created 2026-10-10 (screenshot 04) |
 | Chain | Monad testnet, chain ID 10143 (`eip155:10143`) | |
-| Allowed origins | ⚠ TODO | Privy's `apps.get` returns `allowed_domains: []`. The hosted origin goes here once deployed ([docs/deploy.md](deploy.md), section 5) |
+| Allowed origins | `https://laxu-monad.vercel.app`, `http://localhost:3000` | The hosted frontend, and localhost for testing |
 
 **The app secret and the authorization private key are never in this repository.** They live only in the untracked `Backend/.env`. No script in `Backend/scripts/privy/` prints either one.
 
@@ -304,7 +304,7 @@ The running product does not use server wallets: the faucet, liquidator, slot, f
 
 ### Transactions
 
-Each hash below was checked with `eth_getTransactionReceipt` and `eth_getTransaction` on 2026-10-09. All are `success`.
+Each hash below was checked with `eth_getTransactionReceipt` and `eth_getTransaction` on 2026-10-09, except the repay, which was checked on MonadScan on 2026-10-13 (screenshot 10). All are `success`.
 
 | Step | Who signed | Tx hash | What it proves |
 |---|---|---|---|
@@ -312,8 +312,7 @@ Each hash below was checked with `eth_getTransactionReceipt` and `eth_getTransac
 | `approve(dead, 1000)` from the user's wallet | Laxu's server key, as a signer on the user's embedded wallet, through Privy's wallet RPC under policy `wudc3vujs3wri9uoeerv5ws0` | [`0x370e8a29a2c5a29fbdfc9a99db1b2b5b7b745e195ab81a1f64af367cb2f7cc8f`](https://testnet.monadscan.com/tx/0x370e8a29a2c5a29fbdfc9a99db1b2b5b7b745e195ab81a1f64af367cb2f7cc8f) | The server can act on a user's wallet only through the signer, within the policy (`from` = `0xfc7d…3d21`) |
 | `approve(dead, 1000)` from a Privy server wallet (policy run 2) | Server key, Privy server wallet `0x8d69…8094`, under an allow-only policy | [`0xb19e166e065827925daf87e712a5ca181d1794c1c011441e05336680b761c8f9`](https://testnet.monadscan.com/tx/0xb19e166e065827925daf87e712a5ca181d1794c1c011441e05336680b761c8f9) | The allowed side of the policy test (spike, section 5) |
 | 1 wei send, Path A | Privy (`sendTransaction`), server wallet `0x8d69…8094` | [`0x937f4804c3f4e2221cfde6920444a8a07a05806df9e18a87d7fb918e8e050ef9`](https://testnet.monadscan.com/tx/0x937f4804c3f4e2221cfde6920444a8a07a05806df9e18a87d7fb918e8e050ef9) | Privy signs and broadcasts on Monad testnet (spike) |
-
-| Repay | Laxu's server key, as a signer on the user's embedded wallet, through Privy's wallet RPC under policy peq7eor5iw53mim4nujdwbzs | [`0x882f5ef469f9f72ae7e16dada69ad39dfbbefcf127a3b26be370daf18465e099`](https://testnet.monadscan.com/tx/0x882f5ef469f9f72ae7e16dada69ad39dfbbefcf127a3b26be370daf18465e099) | Privy signs and broadcasts repay function on behalf of the user |
+| Protection `repay()` on pool `0xB3a9…d328`, 2026-10-13 07:12:04 UTC, block 70619612 | Laxu's server key, as a signer on the user's embedded wallet `0xfc7d…3d21`, through Privy's wallet RPC under policy `peq7eor5iw53mim4nujdwbzs` | [`0x882f5ef469f9f72ae7e16dada69ad39dfbbefcf127a3b26be370daf18465e099`](https://testnet.monadscan.com/tx/0x882f5ef469f9f72ae7e16dada69ad39dfbbefcf127a3b26be370daf18465e099) | Loan protection end to end: the worker fired, and Privy signed and broadcast `repay()` from the user's own wallet, within the repay-only policy (screenshot 10) |
 
 ### Policy refusal log
 
@@ -333,38 +332,37 @@ The unit tests are listed in section 4.5. Separately, `Backend/scripts/privy/qa-
 
 ## 7. Screenshots
 
-The images go in `docs/img/privy/`. None has been captured yet.
+The images are in `docs/img/privy/`, captured on 2026-10-13 from the hosted app (`laxu-monad.vercel.app`) and the Privy dashboard.
 
 | File | What was captured |
 |---|---|
 | `01-login.png` | Login modal (email or wallet) |
 | `02-embedded-wallet.png` | Embedded wallet address shown in the app |
-| `03-privy-dashboard-app.png` | Privy dashboard showing the app named Laxu (hide the app secret) |
-| `04-dashboard-policy.png` | Dashboard view of the policy (full policy id visible) |
-| `05-dashboard-policy-overview.png` | Authorization key / quorum entry (public key and id only) |
-| `06-protect-card-off.png` | "Protect this loan" card, state Off |
-| `07-protect-setup.png` | Setup with trigger, target, max spend and preview |
-| `08-protect-consent.png` | The consent step ("I understand, allow Laxu to repay") |
+| `03-privy-dashboard-app.png` | Privy dashboard showing the app named Laxu (no app secret visible) |
+| `04-dashboard-policy.png` | The repay policy `laxu-repay-0xB3a91c5c` in the dashboard (full policy id visible) |
+| `06-protect-card-off.png` | "Protect this loan" card, state Off, before setup |
+| `07-protect-setup.png` | Privy's prompt to approve the exact AUSD allowance for the pool, from the embedded wallet |
+| `08-protect-consent.png` | Privy's "Transaction complete" after that approval |
 | `09-protect-on.png` | State On, "Protected" |
-| `10-signed-tx.png` | Explorer page of a transaction signed by the embedded wallet |
+| `10-signed-tx.png` | MonadScan page of the protection repay `0x882f5ef4…`, sent from the embedded wallet by Laxu's signer |
 
-screenshot: ![The Privy login modal, offering email, Google or a wallet](img/privy/01-login.png)
+![The Privy login modal, offering email, Google or a wallet](img/privy/01-login.png)
 
-screenshot: ![The user's Privy embedded wallet address shown in Laxu](img/privy/02-embedded-wallet.png)
+![The user's Privy embedded wallet address shown in Laxu](img/privy/02-embedded-wallet.png)
 
-screenshot: ![The Privy dashboard showing the app named Laxu, app secret hidden](img/privy/03-privy-dashboard-app.png)
+![The Privy dashboard showing the app named Laxu, app secret hidden](img/privy/03-privy-dashboard-app.png)
 
-screenshot: ![The policy in the Privy dashboard, full policy id visible](img/privy/04-dashboard-policy.png)
+![The repay policy laxu-repay-0xB3a91c5c in the Privy dashboard, full policy id visible](img/privy/04-dashboard-policy.png)
 
-screenshot: ![The Protect this loan card in the Off state](img/privy/06-protect-card-off.png)
+![The Protect this loan card in the Off state](img/privy/06-protect-card-off.png)
 
-screenshot: ![Setup: trigger, target, maximum spend and the repay preview](img/privy/07-protect-setup.png)
+![Privy's prompt to approve the exact AUSD allowance for the pool](img/privy/07-protect-setup.png)
 
-screenshot: ![The consent step: "I understand, allow Laxu to repay"](img/privy/08-protect-consent.png)
+![Privy's "Transaction complete" after the allowance approval](img/privy/08-protect-consent.png)
 
-screenshot: ![Protection on, with the PROTECTED badge](img/privy/09-protect-on.png)
+![Protection on, with the PROTECTED badge](img/privy/09-protect-on.png)
 
-screenshot: ![MonadScan page of a transaction signed by the embedded wallet](img/privy/10-signed-tx.png)
+![MonadScan page of the protection repay 0x882f5ef4…, sent from the embedded wallet by Laxu's signer](img/privy/10-signed-tx.png)
 
 ## 8. How to reproduce
 
@@ -392,13 +390,13 @@ Steps marked **(your credentials)** need your own Privy app.
 | Server acts on a user's wallet through a signer, within the policy | Proven | `03-user-signer.ts` run 2; `0x370e8a29…`; three `policy_violation` refusals |
 | Removing the signer stops the server | Proven | HTTP 401 after `removeSigners` |
 | Repay policy shape | Proven by test | `policies.test.ts` (5 tests); created in Privy by `qa-protection.ts` |
-| Activation checks (signer and allowance) | Proven for the refusal path; success path run in the UI | `qa-protection.ts`: `SIGNER_MISSING`, rule stays disabled. The success path ran in the UI protection run |
-| Full trigger-and-repay cycle on testnet | Run in the UI | fully executed |
+| Activation checks (signer and allowance) | Proven | Refusal path: `qa-protection.ts`, `SIGNER_MISSING`, rule stays disabled. Success path: the rule went to Protected (screenshot 09) and repaid (section 6) |
+| Full trigger-and-repay cycle on testnet | Proven | Repay `0x882f5ef4…` from the embedded wallet, 2026-10-13 (section 6) |
 | `demo-rejection.ts --full` against a live repay policy | Not exercised | Needs an enabled rule |
 | Embedded wallets only | By design | Signers attach to Privy wallets. External-wallet users see "Loan protection needs a Laxu wallet created with email sign-in." The backend answer `NOT_EMBEDDED_WALLET` is unexercised, because no external-wallet user exists |
 | One active rule per wallet | By design | A signer carries at most one policy, so the backend refuses a second active rule (`ANOTHER_RULE_ACTIVE`) |
 | Policy scope | Per pool, per rule | Each rule's policy names one pool and one per-call cap. It could be tightened further (for example a total limit inside Privy) if Privy's cumulative limits come to support `eth_sendTransaction` |
 | Gas | Paid by the user's wallet | The repay is sent from the user's wallet. Monad bills the gas limit. The worker skips with "Add MON for gas" when the wallet is short |
 | Market speed | Limit | A fast move between 5 s checks can still liquidate. It is a safety net, not a guarantee |
-| Hosted origin in Privy | proven | `allowed_domains` is set to frontend url and localhost:3000(testing); |
-| Screenshots | Published | All 10 in section 7 |
+| Hosted origin in Privy | Set | `allowed_domains`: `https://laxu-monad.vercel.app` and `http://localhost:3000` (testing) |
+| Screenshots | Published | 9 in section 7 |
